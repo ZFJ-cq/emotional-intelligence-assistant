@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高情商回复助手</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <meta name="theme-color" content="#6C5CE7">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app" class="app">
+        <div id="lock-screen" class="lock-screen hidden" role="dialog" aria-label="锁定屏幕" aria-modal="true">
+            <div class="lock-container">
+                <div class="lock-icon" aria-hidden="true">🔒</div>
+                <h2>数据已锁定</h2>
+                <p>请输入密码解锁</p>
+                <div class="lock-input-group">
+                    <label for="lock-password" class="sr-only">解锁密码</label>
+                    <input type="password" id="lock-password" placeholder="输入解锁密码" autocomplete="off" aria-describedby="lock-error">
+                    <button id="unlock-btn" class="btn btn-primary" aria-label="解锁">解锁</button>
+                </div>
+                <p id="lock-error" class="lock-error hidden" role="alert">密码错误，请重试</p>
+            </div>
+        </div>
+
+        <header class="header" role="banner">
+            <div class="header-left">
+                <span class="logo" aria-hidden="true">💬</span>
+                <h1 class="app-title">高情商回复助手</h1>
+            </div>
+            <div class="header-right">
+                <button id="theme-toggle" class="icon-btn" title="切换主题" aria-label="切换深色/浅色主题">
+                    <span class="theme-icon" aria-hidden="true">🌙</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="main-content" role="main">
+            <section id="page-home" class="page active" role="tabpanel" aria-label="对话页面">
+                <div class="scene-bar">
+                    <div class="scene-bar-label">场景选择 <button id="scene-tree-btn" class="scene-tree-btn" title="浏览场景树" aria-label="浏览场景树">🌳</button></div>
+                    <div id="scene-chips" class="scene-chips" role="radiogroup" aria-label="场景选择">
+                        <div class="scene-chip active" data-scene="0" role="radio" aria-checked="true" tabindex="0">全部</div>
+                    </div>
+                </div>
+
+                <div class="input-section">
+                    <div class="input-wrapper">
+                        <label for="user-input" class="sr-only">输入对话内容</label>
+                        <textarea id="user-input" placeholder="输入对话内容，如：领导说“这个项目你跟进一下”…" rows="3" maxlength="500" aria-label="对话输入框"></textarea>
+                        <div class="input-actions">
+                            <button id="voice-btn" class="icon-btn-sm" title="语音输入" aria-label="语音输入">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                            </button>
+                            <button id="clear-input-btn" class="icon-btn-sm" title="清空" aria-label="清空输入">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="style-bar">
+                        <span class="style-label">回复风格：</span>
+                        <div id="style-chips" class="style-chips" role="radiogroup" aria-label="回复风格选择">
+                            <div class="style-chip active" data-style="formal" role="radio" aria-checked="true" tabindex="0">正式</div>
+                            <div class="style-chip" data-style="humorous" role="radio" aria-checked="false" tabindex="0">幽默</div>
+                            <div class="style-chip" data-style="gentle" role="radio" aria-checked="false" tabindex="0">温和</div>
+                            <div class="style-chip" data-style="direct" role="radio" aria-checked="false" tabindex="0">直接</div>
+                            <div class="style-chip" data-style="witty" role="radio" aria-checked="false" tabindex="0">机智</div>
+                        </div>
+                        <button id="random-style-btn" class="icon-btn-sm" title="随机风格" aria-label="随机切换回复风格">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
+                        </button>
+                    </div>
+
+                    <button id="generate-btn" class="btn btn-primary btn-generate" aria-label="生成高情商回复">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                        生成高情商回复
+                    </button>
+                </div>
+
+                <div id="scene-suggest" class="scene-suggest hidden" role="region" aria-label="场景推荐">
+                    <div class="suggest-label">💡 您可能在这些场景中：</div>
+                    <div id="suggest-chips" class="suggest-chips"></div>
+                </div>
+
+                <div id="diagnosis-section" class="diagnosis-section hidden" role="region" aria-label="场景诊断">
+                    <div class="diagnosis-header">
+                        <h3>场景诊断</h3>
+                        <span class="diagnosis-badge">沟通顾问视角</span>
+                    </div>
+                    <div class="diagnosis-grid">
+                        <div class="diagnosis-item">
+                            <span class="diagnosis-label">对方潜台词</span>
+                            <p id="diagnosis-intent"></p>
+                        </div>
+                        <div class="diagnosis-item">
+                            <span class="diagnosis-label">情绪定位</span>
+                            <p id="diagnosis-emotion"></p>
+                        </div>
+                        <div class="diagnosis-item">
+                            <span class="diagnosis-label">策略匹配</span>
+                            <p id="diagnosis-strategy"></p>
+                        </div>
+                        <div class="diagnosis-item warning">
+                            <span class="diagnosis-label">沟通雷区</span>
+                            <p id="diagnosis-minefield"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="replies-section" class="replies-section hidden" role="region" aria-label="回复推荐">
+                    <div class="replies-header">
+                        <h3>回复推荐</h3>
+                        <div style="display:flex;gap:8px;align-items:center">
+                            <span id="reply-count" class="reply-count" aria-live="polite"></span>
+                            <button id="add-custom-reply-btn" class="btn btn-sm btn-outline" title="添加自定义回复" aria-label="添加自定义回复">✏️ 自定义</button>
+                        </div>
+                    </div>
+                    <div id="replies-list" class="replies-list" role="list"></div>
+                </div>
+
+                <div id="tag-cloud-section" class="tag-cloud-section" role="region" aria-label="热门标签">
+                    <div class="section-header">
+                        <h3>热门标签</h3>
+                    </div>
+                    <div id="tag-cloud" class="tag-cloud" role="list"></div>
+                </div>
+            </section>
+
+            <section id="page-history" class="page" role="tabpanel" aria-label="历史记录页面">
+                <div class="page-header">
+                    <h2>历史记录</h2>
+                    <button id="clear-history-btn" class="btn btn-sm btn-outline" aria-label="清空历史记录">清空</button>
+                </div>
+                <div class="search-bar">
+                    <div class="search-input-wrap">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <label for="history-search" class="sr-only">搜索历史记录</label>
+                        <input type="text" id="history-search" placeholder="搜索历史记录…" aria-label="搜索历史记录">
+                    </div>
+                    <button id="history-filter-btn" class="icon-btn-sm" title="筛选" aria-label="筛选历史记录" aria-expanded="false">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                    </button>
+                </div>
+                <div id="history-filter-panel" class="filter-panel hidden" role="region" aria-label="筛选面板">
+                    <div class="filter-group">
+                        <label for="filter-scene">场景筛选</label>
+                        <select id="filter-scene">
+                            <option value="">全部场景</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-rating">评分筛选</label>
+                        <select id="filter-rating">
+                            <option value="">全部评分</option>
+                            <option value="4">4星以上</option>
+                            <option value="3">3星以上</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="history-list" class="history-list" role="list" aria-label="历史记录列表">
+                    <div class="empty-state">
+                        <div class="empty-icon" aria-hidden="true">📋</div>
+                        <p>暂无历史记录</p>
+                        <p class="empty-hint">开始对话后，记录会出现在这里</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="page-favorites" class="page" role="tabpanel" aria-label="收藏页面">
+                <div class="page-header">
+                    <h2>我的收藏</h2>
+                    <button id="add-folder-btn" class="btn btn-sm btn-outline" aria-label="新建收藏夹">新建文件夹</button>
+                </div>
+                <div id="folder-tabs" class="folder-tabs" role="tablist" aria-label="收藏夹分类">
+                    <div class="folder-tab active" data-folder="all" role="tab" aria-selected="true" tabindex="0">全部</div>
+                </div>
+                <div id="favorites-list" class="favorites-list" role="list" aria-label="收藏列表">
+                    <div class="empty-state">
+                        <div class="empty-icon" aria-hidden="true">⭐</div>
+                        <p>暂无收藏</p>
+                        <p class="empty-hint">点击回复卡片上的⭐即可收藏</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="page-settings" class="page" role="tabpanel" aria-label="设置页面">
+                <div class="page-header">
+                    <h2>设置</h2>
+                </div>
+                <div class="settings-list">
+                    <div class="settings-group">
+                        <div class="settings-group-title">外观</div>
+                        <div class="settings-item">
+                            <div class="settings-item-info">
+                                <div class="settings-item-label">暗黑模式</div>
+                                <div class="settings-item-desc">跟随系统或手动切换</div>
+                            </div>
+                            <label class="toggle" aria-label="暗黑模式开关">
+                                <input type="checkbox" id="dark-mode-toggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <div class="settings-group-title">隐私与安全</div>
+                        <div class="settings-item">
+                            <div class="settings-item-info">
+                                <div class="settings-item-label">数据锁定</div>
+                                <div class="settings-item-desc">设置密码保护应用访问</div>
+                            </div>
+                            <label class="toggle" aria-label="数据锁定开关">
+                                <input type="checkbox" id="lock-toggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="settings-item" id="set-password-item" style="display:none">
+                            <div class="settings-item-info">
+                                <div class="settings-item-label">设置密码</div>
+                                <div class="settings-item-desc">设置或修改锁定密码</div>
+                            </div>
+                            <button id="set-password-btn" class="btn btn-sm btn-outline" aria-label="设置密码">设置</button>
+                        </div>
+                        <div class="settings-item">
+                            <div class="settings-item-info">
+                                <div class="settings-item-label">导出加密</div>
+                                <div class="settings-item-desc">导出备份文件时使用AES加密保护</div>
+                            </div>
+                            <label class="toggle" aria-label="数据加密开关">
+                                <input type="checkbox" id="encryption-toggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <div class="settings-group-title">数据管理</div>
+                        <div class="settings-item clickable" id="export-data-btn" role="button" tabindex="0" aria-label="导出数据">
+                            <div class="settings-item-info">
+                                <div class="settings-item-label">导出数据</div>
+                                <div class="settings-item-desc">导出加密JSON备份文件</div>
+                            </div>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        </div>
+                        <div class="settings-item clickable" id="import-data-btn" role="button" tabindex="0" aria-label="导入数据">
+                            <div class="settings-item-info">
+                                <div class="settings-item-label">导入数据</div>
+                                <div class="settings-item-desc">从备份文件恢复数据</div>
+                            </div>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        </div>
+                        <input type="file" id="import-file-input" accept=".json" style="display:none" aria-hidden="true">
+                        <div class="settings-item clickable" id="view-log-btn" role="button" tabindex="0" aria-label="查看数据活动日志">
+                            <div class="settings-item-info">
+                                <div class="settings-item-label">数据活动日志</div>
+                                <div class="settings-item-desc">查看所有数据的增删改操作</div>
+                            </div>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </div>
+                        <div class="settings-item clickable danger" id="delete-all-btn" role="button" tabindex="0" aria-label="删除所有数据">
+                            <div class="settings-item-info">
+                                <div class="settings-item-label">删除所有数据</div>
+                                <div class="settings-item-desc">清除本地所有数据，不可恢复</div>
+                            </div>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <div class="settings-group-title">自动备份</div>
+                        <div class="settings-item">
+                            <div class="settings-item-info">
+                                <div class="settings-item-label">自动备份</div>
+                                <div class="settings-item-desc">定期自动备份数据</div>
+                            </div>
+                            <label class="toggle" aria-label="自动备份开关">
+                                <input type="checkbox" id="auto-backup-toggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="settings-item">
+                            <div class="settings-item-info">
+                                <div class="settings-item-label">备份频率</div>
+                            </div>
+                            <label for="backup-frequency" class="sr-only">备份频率</label>
+                            <select id="backup-frequency" class="settings-select">
+                                <option value="daily">每天</option>
+                                <option value="weekly">每周</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <div class="settings-group-title">关于</div>
+                        <div class="settings-item">
+                            <div class="settings-item-info">
+                                <div class="settings-item-label">版本</div>
+                            </div>
+                            <span class="settings-value">V1.1.0</span>
+                        </div>
+                        <div class="settings-item">
+                            <div class="settings-item-info">
+                                <div class="settings-item-label">数据统计</div>
+                            </div>
+                            <span id="data-stats" class="settings-value" aria-live="polite">加载中…</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <nav class="tab-bar" role="tablist" aria-label="主导航">
+            <div class="tab-item active" data-page="home" role="tab" aria-selected="true" aria-controls="page-home" tabindex="0">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <span>对话</span>
+            </div>
+            <div class="tab-item" data-page="history" role="tab" aria-selected="false" aria-controls="page-history" tabindex="-1">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <span>历史</span>
+            </div>
+            <div class="tab-item" data-page="favorites" role="tab" aria-selected="false" aria-controls="page-favorites" tabindex="-1">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                <span>收藏</span>
+            </div>
+            <div class="tab-item" data-page="settings" role="tab" aria-selected="false" aria-controls="page-settings" tabindex="-1">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                <span>设置</span>
+            </div>
+        </nav>
+
+        <div id="modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="弹窗">
+            <div id="modal-content" class="modal-content"></div>
+        </div>
+
+        <div id="toast-container" class="toast-container" role="status" aria-live="polite" aria-atomic="true"></div>
+    </div>
+
+    <script src="db.js"></script>
+    <script src="engine.js"></script>
+    <script src="seed.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

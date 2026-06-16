@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>童话算术大冒险</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: {
+        fairy: ['ZCOOL KuaiLe', 'cursive'],
+        body: ['Noto Sans SC', 'sans-serif'],
+      }
+    }
+  }
+}
+</script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Noto Sans SC', sans-serif; overflow: hidden; height: 100vh; }
+
+.screen { display: none; width: 100%; height: 100vh; position: absolute; top: 0; left: 0; }
+.screen.active { display: flex; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-15px) rotate(5deg); }
+  75% { transform: translateY(10px) rotate(-3deg); }
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes popIn {
+  0% { opacity: 0; transform: scale(0.3); }
+  50% { transform: scale(1.1); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-6px); }
+  20%, 40%, 60%, 80% { transform: translateX(6px); }
+}
+@keyframes pulse-green {
+  0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6); }
+  70% { box-shadow: 0 0 0 20px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+@keyframes pulse-red {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+  70% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+@keyframes starBurst {
+  0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0); }
+}
+@keyframes heartBreak {
+  0% { transform: scale(1); opacity: 1; }
+  25% { transform: scale(1.3); }
+  50% { transform: scale(0.8) rotate(15deg); opacity: 0.7; }
+  100% { transform: scale(0) rotate(-30deg); opacity: 0; }
+}
+@keyframes confettiFall {
+  0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0.5; }
+}
+@keyframes bookFlip {
+  0% { transform: perspective(800px) rotateY(0deg); opacity: 1; }
+  50% { transform: perspective(800px) rotateY(-90deg); opacity: 0.5; }
+  100% { transform: perspective(800px) rotateY(0deg); opacity: 1; }
+}
+@keyframes bounceIn {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.15); }
+  70% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+@keyframes rainbowBg {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes castleFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes wandSparkle {
+  0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1) rotate(180deg); }
+}
+@keyframes progressFill {
+  from { width: 0; }
+}
+
+.animate-float { animation: float 3s ease-in-out infinite; }
+.animate-twinkle { animation: twinkle 2s ease-in-out infinite; }
+.animate-slideUp { animation: slideUp 0.6s ease-out forwards; }
+.animate-slideDown { animation: slideDown 0.5s ease-out forwards; }
+.animate-popIn { animation: popIn 0.5s ease-out forwards; }
+.animate-shake { animation: shake 0.5s ease-in-out; }
+.animate-pulse-green { animation: pulse-green 0.6s ease-out; }
+.animate-pulse-red { animation: pulse-red 0.6s ease-out; }
+.animate-bounceIn { animation: bounceIn 0.6s ease-out forwards; }
+.animate-bookFlip { animation: bookFlip 0.8s ease-in-out; }
+.animate-castleFloat { animation: castleFloat 3s ease-in-out infinite; }
+
+.star-particle {
+  position: absolute;
+  font-size: 1.5rem;
+  pointer-events: none;
+  animation: starBurst 0.8s ease-out forwards;
+}
+.heart-particle {
+  position: absolute;
+  font-size: 1.2rem;
+  pointer-events: none;
+  animation: heartBreak 0.6s ease-out forwards;
+}
+.confetti {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  top: -10px;
+  pointer-events: none;
+  animation: confettiFall 3s linear forwards;
+}
+
+.fairy-btn {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 6px 0 rgba(0,0,0,0.15), 0 8px 20px rgba(0,0,0,0.1);
+}
+.fairy-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 0 rgba(0,0,0,0.15), 0 12px 30px rgba(0,0,0,0.15);
+}
+.fairy-btn:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 rgba(0,0,0,0.15), 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.fairy-card {
+  border: 3px solid rgba(255,255,255,0.5);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3);
+}
+
+.input-fairy {
+  transition: all 0.3s ease;
+  caret-color: #8B5CF6;
+}
+.input-fairy:focus {
+  transform: scale(1.02);
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.3), 0 8px 25px rgba(139, 92, 246, 0.15);
+}
+
+.progress-dot {
+  transition: all 0.4s ease;
+}
+.progress-dot.completed {
+  transform: scale(1.2);
+}
+
+.bg-particles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.bg-particle {
+  position: absolute;
+  opacity: 0.15;
+  animation: float 4s ease-in-out infinite;
+}
+
+.level-badge {
+  transition: all 0.3s ease;
+}
+.level-badge.active {
+  transform: scale(1.15);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+.level-badge.locked {
+  filter: grayscale(1) brightness(0.6);
+}
+
+.modal-overlay {
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(8px);
+}
+
+.correct-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(34, 197, 94, 0.15);
+  border-radius: inherit;
+  pointer-events: none;
+  animation: pulse-green 0.6s ease-out;
+}
+.wrong-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(239, 68, 68, 0.15);
+  border-radius: inherit;
+  pointer-events: none;
+  animation: pulse-red 0.6s ease-out;
+}
+</style>
+</head>
+<body class="bg-gray-900">
+
+<div id="app" class="relative w-full h-screen">
+
+  <!-- ========== START SCREEN ========== -->
+  <div id="startScreen" class="screen active flex-col items-center justify-center"
+       style="background: linear-gradient(135deg, #1a0533 0%, #2d1b69 30%, #4c1d95 60%, #1e3a5f 100%);">
+
+    <div class="bg-particles" id="startParticles"></div>
+
+    <div class="relative z-10 text-center px-4">
+      <div class="animate-castleFloat mb-4">
+        <span class="text-7xl md:text-8xl">🏰</span>
+      </div>
+      <h1 class="font-fairy text-5xl md:text-7xl text-transparent bg-clip-text mb-3"
+          style="background: linear-gradient(90deg, #FFD700, #FF6B9D, #C084FC, #60A5FA, #FFD700); background-size: 200% auto; animation: rainbowBg 4s linear infinite;">
+        童话算术大冒险
+      </h1>
+      <p class="font-body text-purple-200 text-lg md:text-xl mb-2 animate-slideUp" style="animation-delay: 0.2s; opacity: 0;">
+        穿越五大童话世界，用算术解锁奇妙冒险！
+      </p>
+      <div class="flex justify-center gap-3 mb-8 animate-slideUp" style="animation-delay: 0.4s; opacity: 0;">
+        <span class="animate-float text-4xl" style="animation-delay: 0s;">👸</span>
+        <span class="animate-float text-4xl" style="animation-delay: 0.3s;">👧</span>
+        <span class="animate-float text-4xl" style="animation-delay: 0.6s;">👠</span>
+        <span class="animate-float text-4xl" style="animation-delay: 0.9s;">❄️</span>
+        <span class="animate-float text-4xl" style="animation-delay: 1.2s;">🐇</span>
+      </div>
+      <button onclick="startGame()"
+              class="fairy-btn font-fairy text-2xl md:text-3xl px-12 py-4 rounded-full text-white animate-slideUp"
+              style="animation-delay: 0.6s; opacity: 0; background: linear-gradient(135deg, #FFD700, #FF8C00);">
+        ✨ 开始冒险 ✨
+      </button>
+      <div class="mt-6 flex justify-center gap-6 text-purple-300 text-sm animate-slideUp" style="animation-delay: 0.8s; opacity: 0;">
+        <span>🎮 5大关卡</span>
+        <span>🧮 趣味算术</span>
+        <span>⭐ 收集星星</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== GAME SCREEN ========== -->
+  <div id="gameScreen" class="screen flex-col items-center" style="background: var(--level-bg);">
+
+    <div class="bg-particles" id="gameParticles"></div>
+
+    <!-- Top Status Bar -->
+    <div class="relative z-10 w-full max-w-2xl px-4 pt-4">
+      <div class="fairy-card rounded-2xl p-3 flex items-center justify-between"
+           style="background: rgba(255,255,255,0.85);">
+        <!-- Lives -->
+        <div class="flex items-center gap-1" id="livesDisplay"></div>
+        <!-- Level Progress -->
+        <div class="flex items-center gap-2">
+          <div class="flex gap-1" id="levelDots"></div>
+        </div>
+        <!-- Score -->
+        <div class="flex items-center gap-1 font-fairy text-xl text-amber-600">
+          <span>⭐</span>
+          <span id="scoreDisplay">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Level Info -->
+    <div class="relative z-10 w-full max-w-2xl px-4 mt-3">
+      <div class="text-center">
+        <span class="font-fairy text-lg md:text-xl px-4 py-1 rounded-full inline-block"
+              id="levelLabel"
+              style="background: rgba(255,255,255,0.7); color: var(--level-color);">
+        </span>
+      </div>
+    </div>
+
+    <!-- Question Card -->
+    <div class="relative z-10 w-full max-w-lg px-4 mt-4 flex-1 flex flex-col items-center justify-center">
+      <div class="fairy-card rounded-3xl p-6 md:p-8 w-full text-center relative overflow-hidden"
+           id="questionCard"
+           style="background: rgba(255,255,255,0.92);">
+
+        <!-- Character Avatar -->
+        <div class="mb-4" id="characterAvatar">
+          <span class="text-6xl md:text-7xl inline-block animate-float" id="avatarEmoji">👸</span>
+        </div>
+
+        <!-- Question Progress -->
+        <div class="flex justify-center gap-2 mb-4" id="questionDots"></div>
+
+        <!-- Question Text -->
+        <div class="font-fairy text-4xl md:text-5xl mb-6" id="questionText"
+             style="color: var(--level-color);">
+        </div>
+
+        <!-- Answer Input -->
+        <div class="flex items-center gap-3 justify-center mb-2">
+          <input type="number" id="answerInput"
+                 class="input-fairy w-36 md:w-44 text-center font-fairy text-3xl md:text-4xl py-3 px-4 rounded-2xl border-3 outline-none"
+                 style="border: 3px solid var(--level-color); background: rgba(255,255,255,0.9);"
+                 placeholder="?"
+                 autocomplete="off">
+          <button onclick="submitAnswer()"
+                  class="fairy-btn font-fairy text-xl md:text-2xl px-6 py-3 rounded-2xl text-white"
+                  style="background: var(--level-color);">
+            确定
+          </button>
+        </div>
+
+        <!-- Feedback Area -->
+        <div id="feedbackArea" class="h-10 flex items-center justify-center">
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Level Map -->
+    <div class="relative z-10 w-full max-w-2xl px-4 pb-4">
+      <div class="fairy-card rounded-2xl p-3 flex items-center justify-center gap-2"
+           style="background: rgba(255,255,255,0.85);">
+        <div class="flex items-center gap-1" id="levelMap"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== LEVEL TRANSITION SCREEN ========== -->
+  <div id="transitionScreen" class="screen flex-col items-center justify-center"
+       style="background: linear-gradient(135deg, #1a0533, #2d1b69);">
+
+    <div class="bg-particles" id="transParticles"></div>
+
+    <div class="relative z-10 text-center px-4">
+      <div class="animate-bounceIn">
+        <span class="text-8xl md:text-9xl inline-block" id="transEmoji">👸</span>
+      </div>
+      <h2 class="font-fairy text-3xl md:text-5xl text-white mt-4 mb-2 animate-slideUp" style="animation-delay: 0.3s; opacity: 0;" id="transTitle">
+      </h2>
+      <p class="font-body text-purple-200 text-lg md:text-xl mb-6 animate-slideUp" style="animation-delay: 0.5s; opacity: 0;" id="transDesc">
+      </p>
+      <div class="flex items-center justify-center gap-2 mb-6 animate-slideUp" style="animation-delay: 0.7s; opacity: 0;">
+        <span class="text-amber-400 font-fairy text-xl">难度：</span>
+        <span id="transDifficulty" class="text-2xl"></span>
+      </div>
+      <button onclick="startLevel()"
+              class="fairy-btn font-fairy text-2xl px-10 py-3 rounded-full text-white animate-slideUp"
+              style="animation-delay: 0.9s; opacity: 0; background: linear-gradient(135deg, #FFD700, #FF8C00);">
+        🚀 出发！
+      </button>
+    </div>
+  </div>
+
+  <!-- ========== RESULT SCREEN ========== -->
+  <div id="resultScreen" class="screen flex-col items-center justify-center modal-overlay">
+    <div id="confettiContainer"></div>
+    <div class="relative z-10 fairy-card rounded-3xl p-8 md:p-10 max-w-md w-full mx-4 text-center animate-popIn"
+         style="background: rgba(255,255,255,0.95);" id="resultCard">
+      <div class="text-7xl md:text-8xl mb-4" id="resultEmoji"></div>
+      <h2 class="font-fairy text-3xl md:text-4xl mb-2" id="resultTitle"></h2>
+      <p class="font-body text-gray-600 text-lg mb-4" id="resultDesc"></p>
+      <div class="flex justify-center gap-1 mb-4" id="resultStars"></div>
+      <div class="font-fairy text-2xl text-amber-600 mb-6" id="resultScore"></div>
+      <button onclick="restartGame()"
+              class="fairy-btn font-fairy text-xl px-8 py-3 rounded-full text-white"
+              style="background: linear-gradient(135deg, #8B5CF6, #6D28D9);">
+        🔄 再来一次
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const LEVELS = [
+  {
+    name: '白雪公主',
+    emoji: '👸',
+    storyEmoji: '👸🍎',
+    type: 'add_sub_20',
+    color: '#E74C3C',
+    bg: 'linear-gradient(135deg, #FADBD8 0%, #F5B7B1 30%, #FDEDEC 60%, #D5F5E3 100%)',
+    desc: '在神秘的森林里，白雪公主需要你的帮助解开算术谜题，才能找到小矮人们的木屋！',
+    difficulty: '⭐',
+    difficultyLabel: '入门',
+  },
+  {
+    name: '小红帽',
+    emoji: '👧',
+    storyEmoji: '🐺👧',
+    type: 'add_sub_50',
+    color: '#C0392B',
+    bg: 'linear-gradient(135deg, #F5B7B1 0%, #E74C3C 25%, #FADBD8 50%, #FDEBD0 100%)',
+    desc: '小红帽要去外婆家，路上大灰狼设下了算术陷阱，帮她算出答案安全通过！',
+    difficulty: '⭐⭐',
+    difficultyLabel: '简单',
+  },
+  {
+    name: '灰姑娘',
+    emoji: '👠',
+    storyEmoji: '👠✨',
+    type: 'add_sub_100',
+    color: '#2980B9',
+    bg: 'linear-gradient(135deg, #D6EAF8 0%, #AED6F1 30%, #D4E6F1 60%, #F2F3F4 100%)',
+    desc: '午夜的钟声即将敲响，灰姑娘需要算对题目才能在魔法消失前回到王子身边！',
+    difficulty: '⭐⭐⭐',
+    difficultyLabel: '中等',
+  },
+  {
+    name: '冰雪奇缘',
+    emoji: '❄️',
+    storyEmoji: '❄️⛄',
+    type: 'multiply',
+    color: '#5DADE2',
+    bg: 'linear-gradient(135deg, #D4E6F1 0%, #AED6F1 30%, #D6EAF8 50%, #EBF5FB 100%)',
+    desc: '艾莎女王的冰雪魔法需要算术之力才能控制，帮她解开乘法封印！',
+    difficulty: '⭐⭐⭐⭐',
+    difficultyLabel: '挑战',
+  },
+  {
+    name: '爱丽丝梦游仙境',
+    emoji: '🐇',
+    storyEmoji: '🐇🎩',
+    type: 'divide_mixed',
+    color: '#8E44AD',
+    bg: 'linear-gradient(135deg, #E8DAEF 0%, #D2B4DE 30%, #F5EEF8 60%, #FADBD8 100%)',
+    desc: '仙境里的一切都不按常理出牌，只有算出正确答案才能找到回家的路！',
+    difficulty: '⭐⭐⭐⭐⭐',
+    difficultyLabel: '困难',
+  },
+];
+
+const QUESTIONS_PER_LEVEL = 5;
+const INITIAL_LIVES = 3;
+const SCORE_PER_CORRECT = 10;
+
+let state = {};
+
+function initState() {
+  state = {
+    screen: 'start',
+    level: 0,
+    score: 0,
+    lives: INITIAL_LIVES,
+    correctInLevel: 0,
+    currentQuestion: null,
+    feedback: null,
+    answered: false,
+  };
+}
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const screenMap = {
+    start: 'startScreen',
+    game: 'gameScreen',
+    transition: 'transitionScreen',
+    result: 'resultScreen',
+  };
+  const el = document.getElementById(screenMap[name]);
+  if (el) {
+    el.classList.add('active');
+    state.screen = name;
+  }
+}
+
+function generateQuestion(type) {
+  let a, b, op, answer, text;
+  switch (type) {
+    case 'add_sub_20': {
+      op = Math.random() < 0.5 ? '+' : '-';
+      if (op === '+') {
+        a = randInt(1, 15);
+        b = randInt(1, 20 - a);
+        answer = a + b;
+      } else {
+        a = randInt(2, 20);
+        b = randInt(1, a - 1);
+        answer = a - b;
+      }
+      text = `${a} ${op} ${b} = ?`;
+      break;
+    }
+    case 'add_sub_50': {
+      op = Math.random() < 0.5 ? '+' : '-';
+      if (op === '+') {
+        a = randInt(5, 35);
+        b = randInt(3, 50 - a);
+        answer = a + b;
+      } else {
+        a = randInt(10, 50);
+        b = randInt(3, a - 1);
+        answer = a - b;
+      }
+      text = `${a} ${op} ${b} = ?`;
+      break;
+    }
+    case 'add_sub_100': {
+      op = Math.random() < 0.5 ? '+' : '-';
+      if (op === '+') {
+        a = randInt(10, 70);
+        b = randInt(5, 100 - a);
+        answer = a + b;
+      } else {
+        a = randInt(20, 100);
+        b = randInt(5, a - 1);
+        answer = a - b;
+      }
+      text = `${a} ${op} ${b} = ?`;
+      break;
+    }
+    case 'multiply': {
+      a = randInt(2, 9);
+      b = randInt(2, 9);
+      answer = a * b;
+      text = `${a} × ${b} = ?`;
+      break;
+    }
+    case 'divide_mixed': {
+      const isDiv = Math.random() < 0.5;
+      if (isDiv) {
+        b = randInt(2, 9);
+        answer = randInt(2, 9);
+        a = b * answer;
+        text = `${a} ÷ ${b} = ?`;
+      } else {
+        const ops = ['+', '-', '×'];
+        const chosenOp = ops[randInt(0, 2)];
+        if (chosenOp === '+') {
+          a = randInt(10, 50);
+          b = randInt(5, 50);
+          answer = a + b;
+        } else if (chosenOp === '-') {
+          a = randInt(20, 99);
+          b = randInt(5, a - 1);
+          answer = a - b;
+        } else {
+          a = randInt(2, 9);
+          b = randInt(2, 9);
+          answer = a * b;
+        }
+        text = `${a} ${chosenOp === '×' ? '×' : chosenOp} ${b} = ?`;
+      }
+      break;
+    }
+  }
+  return { text, answer };
+}
+
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function startGame() {
+  initState();
+  state.level = 0;
+  showTransition();
+}
+
+function showTransition() {
+  const level = LEVELS[state.level];
+  document.getElementById('transEmoji').textContent = level.emoji;
+  document.getElementById('transTitle').textContent = `第${state.level + 1}关：${level.name}`;
+  document.getElementById('transDesc').textContent = level.desc;
+  document.getElementById('transDifficulty').textContent = level.difficulty;
+
+  const transScreen = document.getElementById('transitionScreen');
+  transScreen.style.background = level.bg;
+
+  createBgParticles('transParticles', level.emoji, 15);
+
+  showScreen('transition');
+}
+
+function startLevel() {
+  state.correctInLevel = 0;
+  state.answered = false;
+  const level = LEVELS[state.level];
+
+  const gameScreen = document.getElementById('gameScreen');
+  gameScreen.style.setProperty('--level-bg', level.bg);
+  gameScreen.style.setProperty('--level-color', level.color);
+  gameScreen.style.background = level.bg;
+
+  document.getElementById('avatarEmoji').textContent = level.emoji;
+  document.getElementById('levelLabel').textContent = `第${state.level + 1}关 · ${level.name}`;
+  document.getElementById('levelLabel').style.color = level.color;
+
+  createBgParticles('gameParticles', level.emoji, 10);
+
+  updateGameUI();
+  nextQuestion();
+  showScreen('game');
+
+  setTimeout(() => {
+    const input = document.getElementById('answerInput');
+    if (input) input.focus();
+  }, 300);
+}
+
+function nextQuestion() {
+  const level = LEVELS[state.level];
+  state.currentQuestion = generateQuestion(level.type);
+  state.answered = false;
+
+  document.getElementById('questionText').textContent = state.currentQuestion.text;
+  document.getElementById('answerInput').value = '';
+  document.getElementById('feedbackArea').innerHTML = '';
+  document.getElementById('questionCard').classList.remove('animate-shake', 'animate-pulse-green', 'animate-pulse-red');
+
+  updateQuestionDots();
+
+  setTimeout(() => {
+    const input = document.getElementById('answerInput');
+    if (input) input.focus();
+  }, 100);
+}
+
+function submitAnswer() {
+  if (state.answered) return;
+
+  const input = document.getElementById('answerInput');
+  const userAnswer = parseInt(input.value, 10);
+
+  if (isNaN(userAnswer)) {
+    input.classList.add('animate-shake');
+    setTimeout(() => input.classList.remove('animate-shake'), 500);
+    return;
+  }
+
+  state.answered = true;
+  const correct = userAnswer === state.currentQuestion.answer;
+  const card = document.getElementById('questionCard');
+  const feedbackArea = document.getElementById('feedbackArea');
+
+  if (correct) {
+    state.score += SCORE_PER_CORRECT;
+    state.correctInLevel++;
+
+    card.classList.add('animate-pulse-green');
+    feedbackArea.innerHTML = `
+      <div class="animate-bounceIn flex items-center gap-2 text-green-600">
+        <span class="text-3xl">✅</span>
+        <span class="font-fairy text-xl">太棒了！+${SCORE_PER_CORRECT}分</span>
+      </div>
+    `;
+
+    spawnStarParticles(card);
+    updateGameUI();
+
+    setTimeout(() => {
+      if (state.correctInLevel >= QUESTIONS_PER_LEVEL) {
+        if (state.level >= LEVELS.length - 1) {
+          showResult(true);
+        } else {
+          state.level++;
+          showTransition();
+        }
+      } else {
+        nextQuestion();
+      }
+    }, 1200);
+  } else {
+    state.lives--;
+
+    card.classList.add('animate-shake');
+    feedbackArea.innerHTML = `
+      <div class="animate-bounceIn flex items-center gap-2 text-red-500">
+        <span class="text-3xl">❌</span>
+        <span class="font-fairy text-xl">答案是 ${state.currentQuestion.answer}</span>
+      </div>
+    `;
+
+    spawnHeartBreak(card);
+    updateGameUI();
+
+    setTimeout(() => {
+      if (state.lives <= 0) {
+        showResult(false);
+      } else {
+        nextQuestion();
+      }
+    }, 1500);
+  }
+}
+
+function updateGameUI() {
+  const livesDisplay = document.getElementById('livesDisplay');
+  let livesHTML = '';
+  for (let i = 0; i < INITIAL_LIVES; i++) {
+    if (i < state.lives) {
+      livesHTML += '<span class="text-2xl">❤️</span>';
+    } else {
+      livesHTML += '<span class="text-2xl">🖤</span>';
+    }
+  }
+  livesDisplay.innerHTML = livesHTML;
+
+  document.getElementById('scoreDisplay').textContent = state.score;
+
+  const levelDots = document.getElementById('levelDots');
+  let dotsHTML = '';
+  for (let i = 0; i < QUESTIONS_PER_LEVEL; i++) {
+    const filled = i < state.correctInLevel;
+    dotsHTML += `<div class="w-3 h-3 rounded-full transition-all duration-300 ${filled ? 'scale-125' : ''}" style="background: ${filled ? LEVELS[state.level].color : '#D1D5DB'};"></div>`;
+  }
+  levelDots.innerHTML = dotsHTML;
+
+  const levelMap = document.getElementById('levelMap');
+  let mapHTML = '';
+  for (let i = 0; i < LEVELS.length; i++) {
+    const isActive = i === state.level;
+    const isCompleted = i < state.level;
+    const isLocked = i > state.level;
+    let cls = 'level-badge w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-xl md:text-2xl transition-all duration-300 ';
+    if (isActive) cls += 'active ring-2 ring-amber-400 ';
+    else if (isCompleted) cls += 'completed ';
+    else cls += 'locked ';
+
+    let bg = isCompleted ? 'background: linear-gradient(135deg, #FFD700, #FFA500);' :
+             isActive ? `background: linear-gradient(135deg, ${LEVELS[i].color}, ${LEVELS[i].color}dd);` :
+             'background: #9CA3AF;';
+    mapHTML += `<div class="${cls}" style="${bg}">${isCompleted ? '✓' : LEVELS[i].emoji}</div>`;
+    if (i < LEVELS.length - 1) {
+      mapHTML += `<div class="w-4 md:w-6 h-1 rounded-full" style="background: ${isCompleted ? '#FFD700' : '#9CA3AF'};"></div>`;
+    }
+  }
+  levelMap.innerHTML = mapHTML;
+}
+
+function updateQuestionDots() {
+  const container = document.getElementById('questionDots');
+  let html = '';
+  for (let i = 0; i < QUESTIONS_PER_LEVEL; i++) {
+    const done = i < state.correctInLevel;
+    const current = i === state.correctInLevel;
+    html += `<div class="w-2.5 h-2.5 rounded-full transition-all duration-300 ${current ? 'scale-150' : ''}" style="background: ${done ? LEVELS[state.level].color : current ? LEVELS[state.level].color + '88' : '#E5E7EB'};"></div>`;
+  }
+  container.innerHTML = html;
+}
+
+function spawnStarParticles(container) {
+  const rect = container.getBoundingClientRect();
+  const emojis = ['⭐', '✨', '🌟', '💫', '🎉'];
+  for (let i = 0; i < 8; i++) {
+    const particle = document.createElement('div');
+    particle.className = 'star-particle';
+    particle.textContent = emojis[randInt(0, emojis.length - 1)];
+    const angle = (Math.PI * 2 * i) / 8;
+    const dist = randInt(60, 120);
+    particle.style.setProperty('--tx', `${Math.cos(angle) * dist}px`);
+    particle.style.setProperty('--ty', `${Math.sin(angle) * dist}px`);
+    particle.style.left = `${rect.width / 2}px`;
+    particle.style.top = `${rect.height / 2}px`;
+    container.appendChild(particle);
+    setTimeout(() => particle.remove(), 800);
+  }
+}
+
+function spawnHeartBreak(container) {
+  const rect = container.getBoundingClientRect();
+  for (let i = 0; i < 3; i++) {
+    const particle = document.createElement('div');
+    particle.className = 'heart-particle';
+    particle.textContent = '💔';
+    particle.style.left = `${randInt(20, rect.width - 20)}px`;
+    particle.style.top = `${randInt(10, rect.height / 2)}px`;
+    particle.style.animationDelay = `${i * 0.15}s`;
+    container.appendChild(particle);
+    setTimeout(() => particle.remove(), 800);
+  }
+}
+
+function showResult(won) {
+  const resultEmoji = document.getElementById('resultEmoji');
+  const resultTitle = document.getElementById('resultTitle');
+  const resultDesc = document.getElementById('resultDesc');
+  const resultStars = document.getElementById('resultStars');
+  const resultScore = document.getElementById('resultScore');
+  const resultCard = document.getElementById('resultCard');
+
+  if (won) {
+    resultEmoji.textContent = '🏆';
+    resultTitle.textContent = '🎉 恭喜通关！';
+    resultTitle.style.color = '#D97706';
+    resultDesc.textContent = '你成功穿越了所有童话世界，成为了算术小达人！';
+    resultCard.style.border = '3px solid #FFD700';
+
+    const starCount = state.lives >= 3 ? 3 : state.lives >= 2 ? 2 : 1;
+    let starsHTML = '';
+    for (let i = 0; i < 3; i++) {
+      starsHTML += `<span class="text-4xl ${i < starCount ? 'animate-bounceIn' : 'opacity-30'}" style="animation-delay: ${i * 0.2}s;">⭐</span>`;
+    }
+    resultStars.innerHTML = starsHTML;
+
+    spawnConfetti();
+  } else {
+    resultEmoji.textContent = '😢';
+    resultTitle.textContent = '冒险失败';
+    resultTitle.style.color = '#6B7280';
+    resultDesc.textContent = '别灰心，再试一次吧！每一次练习都让你更强大！';
+    resultCard.style.border = '3px solid #9CA3AF';
+    resultStars.innerHTML = '';
+  }
+
+  resultScore.textContent = `总得分：${state.score} 分`;
+  showScreen('result');
+}
+
+function spawnConfetti() {
+  const container = document.getElementById('confettiContainer');
+  container.innerHTML = '';
+  const colors = ['#FFD700', '#FF6B9D', '#60A5FA', '#34D399', '#C084FC', '#F97316', '#EF4444'];
+  const shapes = ['■', '●', '▲', '★', '♦'];
+  for (let i = 0; i < 50; i++) {
+    const confetti = document.createElement('div');
+    confetti.className = 'confetti';
+    confetti.style.left = `${randInt(0, 100)}vw`;
+    confetti.style.backgroundColor = colors[randInt(0, colors.length - 1)];
+    confetti.style.animationDelay = `${Math.random() * 2}s`;
+    confetti.style.animationDuration = `${2 + Math.random() * 2}s`;
+    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    confetti.style.width = `${randInt(6, 14)}px`;
+    confetti.style.height = `${randInt(6, 14)}px`;
+    container.appendChild(confetti);
+  }
+  setTimeout(() => container.innerHTML = '', 4000);
+}
+
+function restartGame() {
+  document.getElementById('confettiContainer').innerHTML = '';
+  startGame();
+}
+
+function createBgParticles(containerId, emoji, count) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  const particles = ['✨', '⭐', '🌟', '💫', '❄️', '🌸', '🦋', '☁️'];
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'bg-particle';
+    p.textContent = particles[randInt(0, particles.length - 1)];
+    p.style.left = `${randInt(5, 95)}%`;
+    p.style.top = `${randInt(5, 95)}%`;
+    p.style.fontSize = `${randInt(16, 32)}px`;
+    p.style.animationDelay = `${Math.random() * 3}s`;
+    p.style.animationDuration = `${3 + Math.random() * 4}s`;
+    container.appendChild(p);
+  }
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    if (state.screen === 'game' && !state.answered) {
+      submitAnswer();
+    }
+  }
+});
+
+document.getElementById('answerInput').addEventListener('input', function() {
+  this.classList.remove('animate-shake');
+});
+
+createBgParticles('startParticles', '✨', 20);
+
+initState();
+</script>
+</body>
+</html>
